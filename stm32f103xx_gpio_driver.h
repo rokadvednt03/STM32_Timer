@@ -2,7 +2,6 @@
 #include "stm32f10x.h"
 
 
-
 #define GPIO_MODE_ANALOGIN	     0
 #define GPIO_MODE_FLOATIN 		 1
 #define GPIO_MODE_IN_PUPD		 2
