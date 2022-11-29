@@ -1,107 +1,112 @@
-#include "stm32f10x.h"
+/**
+  ******************************************************************************
+  * @file		     stm32f103xx_timer.c
+  * @author 		 Vedant A. Rokad
+  * @Processor	 ARM Cortex - M3
+  * @date    		 28-November-2022
+  * @brief   		 TIMER_Peripheral Driver 
+  ******************************************************************************
+ **/
+ 
+ 
 #include "stm32f103xx_timer.h"
 
-void TIMER_Enable(TIM_TypeDef *ptimx ,uint8_t Enordi)
+
+
+/****************************************************************************************
+*                                                                                       *
+*                                TIMER_PERIPHERAL_CLOCK                                 *
+*                                                                                       *
+/***************************************************************************************/
+
+void TIMER_PERICLK_Enable( TIM_TypeDef *ptimer_x , uint16_t Enordi )
 {
-	if(Enordi == ENABLE)
-	{
-			if(ptimx == TIM1)
-			{
-				RCC->APB2ENR |= (1 << 11 );
-			}
-			else if(ptimx == TIM2)
-			{
-				RCC->APB2ENR |= (1 << 11 );
-			}
-			else if(ptimx == TIM3)
-			{
-				RCC->APB2ENR |= (1 << 11 );
-			}
-			else if(ptimx == TIM4)
-			{
-				RCC->APB2ENR |= (1 << 11 );
-			}
-			else if(ptimx == TIM6)
-			{
-				RCC->APB2ENR |= (1 << 11 );
-			}
-			else if(ptimx == TIM7)
-			{
-				RCC->APB2ENR |= (1 << 11 );
-			}
-	}
-	else
-	{
-			if(ptimx == TIM1)
-			{
-				RCC->APB2ENR &= ~(1 << 11 );
-			}
-			else if(ptimx == TIM2)
-			{
-				RCC->APB2ENR &= ~(1 << 11 );
-			}
-			else if(ptimx == TIM3)
-			{
-				RCC->APB2ENR &= ~(1 << 11 );
-			}
-			else if(ptimx == TIM4)
-			{
-				RCC->APB2ENR &= ~(1 << 11 );
-			}
-			else if(ptimx == TIM6)
-			{
-				RCC->APB2ENR &= ~(1 << 11 );
-			}
-			else if(ptimx == TIM7)
-			{
-				RCC->APB2ENR &= ~(1 << 11 );
-			}
+		if(Enordi == ENABLE)
+		{
+					if(ptimer_x == TIM1)
+								RCC->APB2ENR |= ( 1 << 11);
+					
+					else if(ptimer_x == TIM2)
+							RCC->APB1ENR |= ( 1 << 0 );
+			
+					else if(ptimer_x == TIM3)
+							RCC->APB1ENR |= ( 1 << 1 );
 	
-	}
+					else if(ptimer_x == TIM4)
+							RCC->APB1ENR |= ( 1 << 2 );
+		}
+		
+		else
+		{
+					if(ptimer_x == TIM1)
+							RCC->APB2ENR &= ~( 1 << 11);
+					
+					else if(ptimer_x == TIM2)
+							RCC->APB1ENR &= ~( 1 << 0 );
+			
+					else if(ptimer_x == TIM3)
+							RCC->APB1ENR &= ~( 1 << 1 );
+	
+					else if(ptimer_x == TIM4)
+							RCC->APB1ENR &= ~( 1 << 2 );
+		
+		}
 }
 
 
 
-void TIMER_Init(timer_handle_t *ptimer_handle_t)
+
+
+
+/****************************************************************************************
+*                                                                                       *
+*                                   TIMER_INITIALIZE                                    *
+*                                                                                       *
+/***************************************************************************************/
+void TIMER_Init(TIMER_Handle_t timer_handle)
 {
+	//TIMER_CLOCK_FACOR                                                                     
+	if(timer_handle.timebase.clock_div_factor == TIMER_CLK_FACTOR_1)	
+			timer_handle.ptimer_x->CR1 &= ~(3 << 8);
+	else if(timer_handle.timebase.clock_div_factor == TIMER_CLK_FACTOR_2)	
+			timer_handle.ptimer_x->CR1 |= (1 << 8);
+	else if(timer_handle.timebase.clock_div_factor == TIMER_CLK_FACTOR_4)	
+			timer_handle.ptimer_x->CR1 |= (2 << 8);
 	
-	//upcounter or downcounter
-	if(ptimer_handle_t->timconfig.TIMER_DIR == TIMER_DIR_DOWN)
-	{
-		ptimer_handle_t->ptimx->CR1 |= (1<<4);
-	}
+	//TIMER_COUNTER_MODE                                                                    
+	if(timer_handle.timebase.counter_mode == TIMER_COUNTER_DOWN)
+			timer_handle.ptimer_x->CR1 |= (1 << 4);
 	else
-	{
-		ptimer_handle_t->ptimx->CR1 &= ~(1<<4);
-	}
+			timer_handle.ptimer_x->CR1 &= ~(1<<4);
 	
+	//TIMER_Auto_Reload_Preload_Enable                                                      
+	if(timer_handle.timebase.ARR_buffer == TIMER_ARR_BUFFERED)
+			timer_handle.ptimer_x->CR1 |= (1 << 7);
+	else
+			timer_handle.ptimer_x->CR1 &= ~(1<<7);
 	
-	//timer division factor
-	if(ptimer_handle_t->timconfig.TIMER_DIV == TIMER_DIV_1)
-	{
-		ptimer_handle_t->ptimx->CR1 &= ~( 1 << 8 );
-	}
-	else if(ptimer_handle_t->timconfig.TIMER_DIV == TIMER_DIV_2)
-	{
-		ptimer_handle_t->ptimx->CR1 |= ( 1 << 8 );
-	}
-	else if(ptimer_handle_t->timconfig.TIMER_DIV == TIMER_DIV_4)
-	{
-		ptimer_handle_t->ptimx->CR1 |= ( 2 << 8 );
-	}
+	//TIMER_PRESCELAR                                                                       
+	timer_handle.ptimer_x->PSC |= timer_handle.timebase.prescalar_value;
+
+	//TIMER_ARR                                                                             
+	timer_handle.ptimer_x->ARR |= timer_handle.timebase.ARR_value;
+	
 }
 
 
 
-void TIMER_COUNTER_Enable(TIM_TypeDef *ptimx ,uint8_t Enordi)
+
+
+
+/****************************************************************************************
+*                                                                                       *
+*                                   TIMER_DEINITIALIZE                                  *
+*                                                                                       *
+/***************************************************************************************/
+void TIMER_Deinit(TIMER_Handle_t timer_handle)
 {
-	if(Enordi == ENABLE )
-	{
-		ptimx->CR1 |= (1<<0);
-	}
-	else
-	{
-		ptimx->CR1 &= ~(1<<0);
-	}
-}
+
+}	
+
+void TIMER_Counter_Enable(void);
 
