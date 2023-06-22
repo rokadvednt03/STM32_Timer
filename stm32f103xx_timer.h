@@ -36,3 +36,6 @@ typedef struct
 void TIMER_PeriClockControl(TIM_TypeDef *pTIMx , uint32_t Enordi);
 void TIMER_Init(TIMER_Handle_t *ptimerhandle);
 void TIMER_Counter_enable(TIM_TypeDef *pTIMx , uint32_t Enordi);
+void TIMER_DELAY(TIM_TypeDef *pTIMx ,uint16_t milisec);
+void delay_check(TIM_TypeDef *pTIMx );
+
