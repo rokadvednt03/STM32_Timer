@@ -16,6 +16,10 @@
 #define TIMER_COUNTER_MODE_center_allign_2 2
 #define TIMER_COUNTER_MODE_center_allign_3 3
 
+#define PWM_CHANNEL_1 0
+#define PWM_CHANNEL_2 1
+#define PWM_CHANNEL_3 2
+#define PWM_CHANNEL_4 3
 
 typedef struct 
 {
@@ -38,4 +42,4 @@ void TIMER_Init(TIMER_Handle_t *ptimerhandle);
 void TIMER_Counter_enable(TIM_TypeDef *pTIMx , uint32_t Enordi);
 void TIMER_DELAY(TIM_TypeDef *pTIMx ,uint16_t milisec);
 void delay_check(TIM_TypeDef *pTIMx );
-
+void PWM_generate(TIM_TypeDef *pTIMx , uint16_t channel , uint16_t freq , uint16_t duty);

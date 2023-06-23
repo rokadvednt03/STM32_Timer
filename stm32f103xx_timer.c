@@ -81,4 +81,52 @@ void delay_check(TIM_TypeDef *pTIMx )
 		pTIMx->CR1 &= ~(1<<0) ; 
 }
 
+/*
+	1. Set OCxPE bit in CCMRx register 
+	2. Set ARPE in CR1 Registor 
+	3. Select PWM mode in OCxM bit in  CCMRx register 
+	4. Set UG bit in EGR register
+
+*/
+
+void PWM_generate(TIM_TypeDef *pTIMx , uint16_t channel , uint16_t freq , uint16_t duty)
+{
+		TIMER_PeriClockControl(pTIMx,ENABLE);
+		uint16_t arr ,pre , preload ;
+		uint32_t clk_freq ;
+		arr  = 0xFFFF;
+		
+		if(pTIMx == TIM1 )	pre = (142000000/(arr*freq)) & (0xffff);
+		else{
+			pre = (72000000/(arr *freq)) & (0xffff);
+		}
+		if(pTIMx == TIM1 )	arr = (14200000/((pre+1)*freq)) & (0xffff);
+		else{
+			arr = (72000000/((pre+1)*freq)) & (0xffff);
+		}
+		preload = (arr*duty)/100 ;
+		pTIMx->CR1 |= TIM_CR1_CMS_0 ;
+		pTIMx->CR1 &= ~TIM_CR1_CMS_0 ;
+		pTIMx->PSC = pre ;
+		pTIMx->ARR = arr ;
+		pTIMx->CCER |= (1<<(channel*4));
+		if(channel < PWM_CHANNEL_3){
+				pTIMx->CCMR1 &= ~(3<<(channel*8));
+				pTIMx->CCMR1 |= (1<<((channel*8)+3));
+				pTIMx->CCMR1 |= (6<<((channel*8)+4));
+		}
+		else{
+				channel = channel - 2 ;
+				pTIMx->CCMR1 &= ~(3<<(channel*8));
+				pTIMx->CCMR1 |= (1<<((channel*8)+3));
+				pTIMx->CCMR1 |= (6<<((channel*8)+4));
+				channel = channel + 2 ;
+		}
+		pTIMx->CR1 |= TIM_CR1_ARPE ;
+		pTIMx->EGR |= TIM_EGR_UG ;
+		if(channel == PWM_CHANNEL_1)	pTIMx->CCR1 = preload;
+		else if(channel == PWM_CHANNEL_2)	pTIMx->CCR2 = preload;
+		else if(channel == PWM_CHANNEL_3)	pTIMx->CCR3 = preload;
+		else if(channel == PWM_CHANNEL_4)	pTIMx->CCR4 = preload;
+}
 
